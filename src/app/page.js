@@ -9,13 +9,28 @@ import ApplyModal from "../components/ApplyModal";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
+const EMMA_PERSONA = {
+  name: "Emma",
+  age: 24,
+  gender: "Female",
+  country: "India",
+  personality: "Cheerful, Spicy, Hot",
+  humor: "Sarcastic, Gen-Z",
+  likes: "Coffee, Travel, Anime",
+  speakingStyle: "Casual, Indian Style, Hinglish",
+  backstory: "Likes: Coffee, Travel, Anime. Speaking Style: Hinglish.",
+  avatar: "/avatars/indian_girl_2.png"
+};
+
 export default function Home() {
   // Modal visibility states
   const [isPersonaOpen, setIsPersonaOpen] = useState(false);
   const [isApplyOpen, setIsApplyOpen] = useState(false);
+  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
+  const [activeModalTab, setActiveModalTab] = useState("chat");
 
-  // Persona State
-  const [persona, setPersona] = useState({
+  // Persona states
+  const [customPersona, setCustomPersona] = useState({
     name: "Luna",
     personality: "Warm, curious",
     backstory: "A traveler who loves talks",
@@ -25,6 +40,7 @@ export default function Home() {
   // Confidence Score Simulator States
   const [depth, setDepth] = useState(80);
   const [consistency, setConsistency] = useState(85);
+  const score = Math.round((depth + consistency) / 2);
 
   const howItWorksRef = useRef(null);
 
@@ -39,31 +55,30 @@ export default function Home() {
     howItWorksRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const handleEditPersona = () => {
+    setIsPersonaOpen(true);
+  };
+
+
   return (
     <>
       {/* Navigation */}
       <Header onApplyClick={() => setIsApplyOpen(true)} />
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-6 pt-12 pb-24 overflow-hidden w-full">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+      <section className="max-w-7xl mx-auto px-6 pt-4 md:pt-12 pb-16 md:pb-24 overflow-hidden w-full">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           <div>
-            <div className="inline-flex items-center gap-2 bg-white px-3 py-1 rounded-full border border-schmooze-border mb-6">
-              <span className="text-schmooze-lime">✦</span>
-              <span className="text-[10px] font-bold tracking-widest uppercase text-schmooze-gray">
-                Paid AI Research Program
-              </span>
-            </div>
-            <h1 className="text-6xl md:text-7xl font-extrabold text-tight mb-8">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-tight mb-6 md:mb-8">
               Create Your AI Persona. Talk. Improve.{" "}
               <span className="bg-schmooze-lime px-2">Get Paid.</span>
             </h1>
-            <p className="text-lg text-schmooze-gray leading-relaxed mb-10 max-w-lg">
+            <p className="text-sm md:text-lg text-schmooze-gray leading-relaxed mb-6 md:mb-10 max-w-lg">
               Create your own AI character by defining its personality, communication style, interests, memories, and behavior. Talk with your AI persona naturally. As conversation quality improves and your confidence score increases, unlock PayPal payouts.
             </p>
             <div className="flex flex-wrap gap-4">
               <button
-                onClick={() => setIsPersonaOpen(true)}
+                onClick={handleEditPersona}
                 className="bg-schmooze-dark text-white px-8 py-4 rounded-full font-bold flex items-center gap-3 hover:scale-105 active:scale-95 transition-all cursor-pointer"
               >
                 Start Building Your AI
@@ -72,77 +87,83 @@ export default function Home() {
                 </svg>
               </button>
               <button
-                onClick={handleScrollToHowItWorks}
+                onClick={() => setIsChatModalOpen(true)}
                 className="bg-transparent border-2 border-schmooze-dark text-schmooze-dark px-8 py-4 rounded-full font-bold flex items-center gap-3 hover:bg-schmooze-dark hover:text-white active:scale-95 transition-all cursor-pointer"
               >
-                <span className="w-6 h-6 border-2 border-current rounded-full flex items-center justify-center">
-                  <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z"></path>
-                  </svg>
+                <span className="w-6 h-6 border-2 border-current rounded-full flex items-center justify-center font-bold text-sm">
+                  💬
                 </span>
-                How It Works
+                Try Emma Demo
               </button>
             </div>
           </div>
 
           {/* Floating UI Elements Group */}
-          <div className="relative flex justify-center">
-            {/* Interactive Chat Simulator */}
-            <ChatSimulator persona={persona} onMessageSent={handleMessageSent} />
+          <div className="relative flex flex-col items-center w-full">
+            <div className="relative flex flex-col lg:flex-row justify-center items-center w-full gap-8 lg:gap-0">
+              {/* Interactive Chat Simulator */}
+              <ChatSimulator persona={customPersona} onMessageSent={handleMessageSent} />
 
-            {/* Profile Card */}
-            <div className="absolute -top-10 -right-4 md:-right-20 z-20 w-64 bg-white p-5 rounded-4xl shadow-xl card-shadow border border-schmooze-border transform rotate-3">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-schmooze-lime rounded-full overflow-hidden flex items-center justify-center">
-                  <img
-                    id="card-avatar"
-                    alt="Avatar"
-                    src={persona.avatar}
-                    className="w-full h-full object-cover"
-                  />
+              {/* Profile Card */}
+              <div className="relative lg:absolute lg:-top-10 lg:-right-20 z-20 w-full max-w-[280px] sm:max-w-64 bg-white p-5 rounded-4xl shadow-xl card-shadow border border-schmooze-border transform rotate-0 lg:rotate-3">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-schmooze-lime rounded-full overflow-hidden flex items-center justify-center">
+                    <img
+                      id="card-avatar"
+                      alt="Avatar"
+                      src={customPersona.avatar}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm" id="card-persona-title">
+                      {customPersona.name}
+                    </p>
+                    <p className="text-xs text-schmooze-gray">Edit your AI character</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-bold text-sm" id="card-persona-title">
-                    {persona.name}
-                  </p>
-                  <p className="text-xs text-schmooze-gray">Edit your AI character</p>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-schmooze-gray">Name</span>{" "}
+                    <span className="font-bold" id="card-persona-name">
+                      {customPersona.name}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-schmooze-gray">Personality</span>{" "}
+                    <span className="font-bold text-right" id="card-persona-personality">
+                      {customPersona.personality
+                        .replace(", calm", "")
+                        .replace(", curious", "")
+                        .replace(", sarcastic", "")
+                        .replace(", mystical", "")
+                        .replace(", logical", "")
+                        .replace(", funny", "")}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-schmooze-gray">Backstory</span>{" "}
+                    <span className="font-bold text-right truncate max-w-[140px]" id="card-persona-backstory">
+                      {customPersona.backstory}
+                    </span>
+                  </div>
                 </div>
+                <button
+                  onClick={handleEditPersona}
+                  className="w-full mt-4 bg-schmooze-lime py-2 rounded-full font-bold text-xs flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all cursor-pointer text-schmooze-dark"
+                  id="edit-persona-btn"
+                >
+                  Edit Persona →
+                </button>
               </div>
-              <div className="space-y-3">
-                <div className="flex justify-between text-[11px]">
-                  <span className="text-schmooze-gray">Name</span>{" "}
-                  <span className="font-bold" id="card-persona-name">
-                    {persona.name}
-                  </span>
-                </div>
-                <div className="flex justify-between text-[11px]">
-                  <span className="text-schmooze-gray">Personality</span>{" "}
-                  <span className="font-bold text-right" id="card-persona-personality">
-                    {persona.personality.replace(", calm", "").replace(", curious", "").replace(", sarcastic", "").replace(", mystical", "").replace(", logical", "").replace(", funny", "")}
-                  </span>
-                </div>
-                <div className="flex justify-between text-[11px]">
-                  <span className="text-schmooze-gray">Backstory</span>{" "}
-                  <span className="font-bold text-right truncate max-w-[140px]" id="card-persona-backstory">
-                    {persona.backstory}
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsPersonaOpen(true)}
-                className="w-full mt-4 bg-schmooze-lime py-2 rounded-full font-bold text-xs flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all cursor-pointer text-schmooze-dark"
-                id="edit-persona-btn"
-              >
-                Edit Persona →
-              </button>
             </div>
           </div>
         </div>
       </section>
 
       {/* Trust Bar */}
-      <section className="max-w-7xl mx-auto px-6 mb-32 w-full">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 bg-white/50 border border-schmooze-border rounded-4xl p-8 card-shadow">
+      <section className="max-w-7xl mx-auto px-6 mb-20 md:mb-32 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 md:gap-8 bg-white/50 border border-schmooze-border rounded-4xl p-6 md:p-8 card-shadow">
           <div className="text-center md:text-left">
             <div className="w-10 h-10 bg-schmooze-lime rounded-full flex items-center justify-center mb-3 mx-auto md:mx-0">🛡️</div>
             <h4 className="font-bold text-sm mb-1">Safe &amp; Private</h4>
@@ -172,52 +193,52 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works-sec" ref={howItWorksRef} className="max-w-7xl mx-auto px-6 mb-32 w-full scroll-mt-6">
-        <h2 className="text-center text-2xl font-bold uppercase tracking-widest mb-16">how it works</h2>
+      <section id="how-it-works-sec" ref={howItWorksRef} className="max-w-7xl mx-auto px-6 mb-20 md:mb-32 w-full scroll-mt-6">
+        <h2 className="text-center text-xl md:text-2xl font-bold uppercase tracking-widest mb-10 md:mb-16">how it works</h2>
         <div className="relative grid grid-cols-1 md:grid-cols-5 gap-6">
           {/* Step 1 */}
-          <div className="relative bg-white p-8 rounded-4xl card-shadow flex flex-col items-center text-center">
-            <span className="absolute top-4 left-4 text-xs font-bold bg-schmooze-lime px-2 py-1 rounded-full">01</span>
-            <div className="text-3xl mb-6 mt-4">📝</div>
-            <h3 className="font-bold text-lg mb-3 leading-tight">Create Your Persona</h3>
+          <div className="relative bg-white p-5 md:p-8 rounded-3xl md:rounded-4xl card-shadow flex flex-col items-center text-center">
+            <span className="absolute top-4 left-4 text-xs font-bold bg-schmooze-lime px-2 py-1 rounded-full hidden md:block">01</span>
+            <div className="text-2xl md:text-3xl mb-3 md:mb-6 mt-2 md:mt-4">📝</div>
+            <h3 className="font-bold text-base md:text-lg mb-2 md:mb-3 leading-tight">Create Your Persona</h3>
             <p className="text-xs text-schmooze-gray">Design your AI character. Choose personality, backstory, and style.</p>
           </div>
           {/* Step 2 */}
-          <div className="relative bg-white p-8 rounded-4xl card-shadow flex flex-col items-center text-center">
-            <span className="absolute top-4 left-4 text-xs font-bold bg-schmooze-lime px-2 py-1 rounded-full">02</span>
-            <div className="text-3xl mb-6 mt-4">💬</div>
-            <h3 className="font-bold text-lg mb-3 leading-tight">Chat Naturally</h3>
+          <div className="relative bg-white p-5 md:p-8 rounded-3xl md:rounded-4xl card-shadow flex flex-col items-center text-center">
+            <span className="absolute top-4 left-4 text-xs font-bold bg-schmooze-lime px-2 py-1 rounded-full hidden md:block">02</span>
+            <div className="text-2xl md:text-3xl mb-3 md:mb-6 mt-2 md:mt-4">💬</div>
+            <h3 className="font-bold text-base md:text-lg mb-2 md:mb-3 leading-tight">Chat Naturally</h3>
             <p className="text-xs text-schmooze-gray">Talk with your AI persona naturally to train it.</p>
           </div>
           {/* Step 3 */}
-          <div className="relative bg-white p-8 rounded-4xl card-shadow flex flex-col items-center text-center">
-            <span className="absolute top-4 left-4 text-xs font-bold bg-schmooze-lime px-2 py-1 rounded-full">03</span>
-            <div className="text-3xl mb-6 mt-4">⭐️</div>
-            <h3 className="font-bold text-lg mb-3 leading-tight">Improve Quality</h3>
+          <div className="relative bg-white p-5 md:p-8 rounded-3xl md:rounded-4xl card-shadow flex flex-col items-center text-center">
+            <span className="absolute top-4 left-4 text-xs font-bold bg-schmooze-lime px-2 py-1 rounded-full hidden md:block">03</span>
+            <div className="text-2xl md:text-3xl mb-3 md:mb-6 mt-2 md:mt-4">⭐️</div>
+            <h3 className="font-bold text-base md:text-lg mb-2 md:mb-3 leading-tight">Improve Quality</h3>
             <p className="text-xs text-schmooze-gray">System evaluates quality and flow in real-time.</p>
           </div>
           {/* Step 4 */}
-          <div className="relative bg-white p-8 rounded-4xl card-shadow flex flex-col items-center text-center">
-            <span className="absolute top-4 left-4 text-xs font-bold bg-schmooze-lime px-2 py-1 rounded-full">04</span>
-            <div className="text-3xl mb-6 mt-4">🎯</div>
-            <h3 className="font-bold text-lg mb-3 leading-tight">Reach Threshold</h3>
+          <div className="relative bg-white p-5 md:p-8 rounded-3xl md:rounded-4xl card-shadow flex flex-col items-center text-center">
+            <span className="absolute top-4 left-4 text-xs font-bold bg-schmooze-lime px-2 py-1 rounded-full hidden md:block">04</span>
+            <div className="text-2xl md:text-3xl mb-3 md:mb-6 mt-2 md:mt-4">🎯</div>
+            <h3 className="font-bold text-base md:text-lg mb-2 md:mb-3 leading-tight">Reach Threshold</h3>
             <p className="text-xs text-schmooze-gray">Once score reaches 70% threshold, your payout unlocks.</p>
           </div>
           {/* Step 5 */}
-          <div className="relative bg-white p-8 rounded-4xl card-shadow flex flex-col items-center text-center">
-            <span className="absolute top-4 left-4 text-xs font-bold bg-schmooze-lime px-2 py-1 rounded-full">05</span>
-            <div className="text-3xl mb-6 mt-4">💵</div>
-            <h3 className="font-bold text-lg mb-3 leading-tight">Receive PayPal</h3>
+          <div className="relative bg-white p-5 md:p-8 rounded-3xl md:rounded-4xl card-shadow flex flex-col items-center text-center">
+            <span className="absolute top-4 left-4 text-xs font-bold bg-schmooze-lime px-2 py-1 rounded-full hidden md:block">05</span>
+            <div className="text-2xl md:text-3xl mb-3 md:mb-6 mt-2 md:mt-4">💵</div>
+            <h3 className="font-bold text-base md:text-lg mb-2 md:mb-3 leading-tight">Receive PayPal</h3>
             <p className="text-xs text-schmooze-gray">Get your payment via PayPal within 30 days.</p>
           </div>
         </div>
       </section>
 
       {/* Build & Payout Grid */}
-      <section className="max-w-7xl mx-auto px-6 mb-32 w-full">
+      <section className="max-w-7xl mx-auto px-6 mb-20 md:mb-32 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Build Any Character Card */}
-          <div className="lg:col-span-1 bg-schmooze-lime/30 rounded-4xl p-10 flex flex-col justify-between">
+          <div className="lg:col-span-1 bg-schmooze-lime/30 rounded-4xl p-6 sm:p-10 flex flex-col justify-between">
             <div>
               <h2 className="text-3xl font-extrabold text-tight mb-6">Build any character you imagine</h2>
               <ul className="space-y-4">
@@ -242,7 +263,7 @@ export default function Home() {
               </ul>
             </div>
             <button
-              onClick={() => setIsPersonaOpen(true)}
+              onClick={handleEditPersona}
               className="bg-schmooze-dark text-white w-full py-4 rounded-full font-bold mt-10 hover:opacity-90 active:scale-95 transition-all cursor-pointer"
               id="grid-build-btn"
             >
@@ -259,7 +280,7 @@ export default function Home() {
           />
 
           {/* Payout Details Card */}
-          <div className="lg:col-span-1 bg-white border border-schmooze-border rounded-4xl p-10 card-shadow flex flex-col justify-between">
+          <div className="lg:col-span-1 bg-white border border-schmooze-border rounded-4xl p-6 sm:p-10 card-shadow flex flex-col justify-between">
             <h2 className="text-2xl font-bold mb-8">Payout details</h2>
             <div className="space-y-6">
               <div className="flex items-center gap-4">
@@ -302,11 +323,11 @@ export default function Home() {
       </section>
 
       {/* Conversation Guide */}
-      <section className="max-w-7xl mx-auto px-6 mb-32 w-full">
-        <h2 className="text-center text-2xl font-bold uppercase tracking-widest mb-16">
+      <section className="max-w-7xl mx-auto px-6 mb-20 md:mb-32 w-full">
+        <h2 className="text-center text-xl md:text-2xl font-bold uppercase tracking-widest mb-12 md:mb-16">
           what makes great conversations?
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 md:gap-8">
           <div className="text-center">
             <div className="text-3xl mb-4">🌟</div>
             <h4 className="font-bold text-sm mb-1">Authentic</h4>
@@ -345,16 +366,16 @@ export default function Home() {
           </div>
 
           {/* Final CTA Card */}
-          <div className="bg-schmooze-dark text-white rounded-4xl p-12 relative overflow-hidden flex flex-col justify-between">
+          <div className="bg-schmooze-dark text-white rounded-4xl p-8 sm:p-12 relative overflow-hidden flex flex-col justify-between">
             <div className="relative z-10">
-              <h2 className="text-4xl font-extrabold text-tight mb-4">Ready to build your AI persona?</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-tight mb-4">Ready to build your AI persona?</h2>
               <p className="text-gray-400 mb-8 max-w-sm">
                 Build your AI persona today and start earning by having meaningful conversations.
               </p>
             </div>
             <div className="relative z-10">
               <button
-                onClick={() => setIsPersonaOpen(true)}
+                onClick={handleEditPersona}
                 className="bg-schmooze-lime text-schmooze-dark px-10 py-4 rounded-full font-bold hover:scale-105 active:scale-95 transition-all cursor-pointer"
               >
                 Start Building Now →
@@ -372,19 +393,19 @@ export default function Home() {
 
       {/* Bottom Banner */}
       <section className="max-w-7xl mx-auto px-6 mb-12 w-full">
-        <div className="bg-schmooze-lime rounded-4xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-6">
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl">🧩</div>
+        <div className="bg-schmooze-lime rounded-4xl p-6 sm:p-8 flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-center sm:text-left">
+            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl shrink-0">🧩</div>
             <div className="text-schmooze-dark">
-              <h3 className="text-2xl font-extrabold">your conversations shape the future of ai.</h3>
-              <p className="text-sm font-medium">Join thousands of contributors building smarter, more human-like AI.</p>
+              <h3 className="text-xl sm:text-2xl font-extrabold">your conversations shape the future of ai.</h3>
+              <p className="text-xs sm:text-sm font-medium">Join thousands of contributors building smarter, more human-like AI.</p>
             </div>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full sm:w-auto justify-center sm:justify-start">
             <button
               onClick={() => setIsApplyOpen(true)}
               id="banner-apply-btn"
-              className="bg-schmooze-dark text-white px-8 py-3 rounded-full font-bold flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+              className="bg-schmooze-dark text-white w-full sm:w-auto px-8 py-3 rounded-full font-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all cursor-pointer"
             >
               Apply Now
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -422,14 +443,126 @@ export default function Home() {
       <PersonaModal
         isOpen={isPersonaOpen}
         onClose={() => setIsPersonaOpen(false)}
-        persona={persona}
+        persona={customPersona}
         onSave={(updated) => {
-          setPersona(updated);
+          setCustomPersona(updated);
           setIsPersonaOpen(false);
           setIsApplyOpen(true);
         }}
       />
       <ApplyModal isOpen={isApplyOpen} onClose={() => setIsApplyOpen(false)} />
+
+      {/* Demo Chat Modal */}
+      {isChatModalOpen && (
+        <div
+          className="modal-overlay active flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target.classList.contains("modal-overlay")) setIsChatModalOpen(false);
+          }}
+        >
+          <div className="bg-white rounded-[32px] max-w-4xl w-full p-5 md:p-8 shadow-2xl relative flex flex-col md:flex-row gap-6 md:gap-8 items-stretch max-h-[90vh] overflow-y-auto card-shadow border border-schmooze-border">
+            {/* Main Modal Close Button */}
+            <button
+              onClick={() => setIsChatModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-schmooze-dark text-3xl font-bold focus:outline-none cursor-pointer z-50 p-2 leading-none"
+            >
+              &times;
+            </button>
+
+            {/* Mobile Tab Switcher */}
+            <div className="flex md:hidden bg-gray-100 p-1 rounded-xl mt-4 mb-2 shrink-0 w-full">
+              <button
+                type="button"
+                onClick={() => setActiveModalTab("chat")}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                  activeModalTab === "chat" ? "bg-white text-schmooze-dark shadow-sm" : "text-schmooze-gray"
+                }`}
+              >
+                💬 Live Chat
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveModalTab("profile")}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                  activeModalTab === "profile" ? "bg-white text-schmooze-dark shadow-sm" : "text-schmooze-gray"
+                }`}
+              >
+                👤 Persona Profile
+              </button>
+            </div>
+
+            {/* Left side: Persona Profile Details */}
+            <div className={`flex-1 flex flex-col justify-between border-b md:border-b-0 md:border-r border-gray-200 pb-6 md:pb-0 md:pr-8 text-left ${activeModalTab === "profile" ? "flex" : "hidden md:flex"}`}>
+              <div>
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-16 h-16 rounded-full bg-schmooze-lime overflow-hidden flex items-center justify-center border-2 border-schmooze-dark shadow-sm">
+                    <img
+                      src={EMMA_PERSONA.avatar}
+                      className="w-full h-full object-cover"
+                      alt="Emma Avatar"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-extrabold text-schmooze-dark">{EMMA_PERSONA.name}</h3>
+                    <p className="text-xs font-bold text-schmooze-gray uppercase tracking-wider">Demo AI Persona</p>
+                  </div>
+                </div>
+
+                {/* Live Confidence Score Widget */}
+                <div className="bg-schmooze-lime/30 border border-schmooze-lime/60 rounded-2xl p-4 mb-6 flex items-center justify-between shadow-sm">
+                  <div>
+                    <span className="text-[10px] font-bold text-schmooze-gray uppercase tracking-wider block">Live Confidence Score</span>
+                    <h4 className="text-2xl font-black text-schmooze-dark mt-0.5">{score}%</h4>
+                    <p className="text-[10px] text-schmooze-gray mt-0.5">
+                      {score >= 70 ? "🔓 Payout unlocked!" : "🔒 Unlocks at 70%"}
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full border-4 border-schmooze-dark flex items-center justify-center font-bold text-xs bg-white shadow-sm">
+                    {score}%
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">Age</span>
+                    <p className="text-sm font-extrabold text-schmooze-dark">{EMMA_PERSONA.age}</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">Gender</span>
+                    <p className="text-sm font-extrabold text-schmooze-dark">{EMMA_PERSONA.gender}</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100 col-span-2">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">Personality Profile</span>
+                    <p className="text-sm font-extrabold text-schmooze-dark">{EMMA_PERSONA.personality}</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100 col-span-2">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">Humor Style</span>
+                    <p className="text-sm font-extrabold text-schmooze-dark">{EMMA_PERSONA.humor}</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100 col-span-2">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">Speaking Style</span>
+                    <p className="text-sm font-extrabold text-schmooze-dark">{EMMA_PERSONA.speakingStyle}</p>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Interests / Likes</span>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="px-3 py-1.5 bg-schmooze-lime/30 border border-schmooze-lime rounded-full text-xs font-bold text-schmooze-dark flex items-center gap-1.5">☕ Coffee</span>
+                    <span className="px-3 py-1.5 bg-schmooze-lime/30 border border-schmooze-lime rounded-full text-xs font-bold text-schmooze-dark flex items-center gap-1.5">✈️ Travel</span>
+                    <span className="px-3 py-1.5 bg-schmooze-lime/30 border border-schmooze-lime rounded-full text-xs font-bold text-schmooze-dark flex items-center gap-1.5">🌸 Anime</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right side: Interactive Chat Simulator */}
+            <div className={`flex-1 flex justify-center items-center relative pt-4 md:pt-0 pl-0 md:pl-4 ${activeModalTab === "chat" ? "flex" : "hidden md:flex"}`}>
+              <ChatSimulator persona={EMMA_PERSONA} onMessageSent={handleMessageSent} />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

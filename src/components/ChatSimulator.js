@@ -80,6 +80,76 @@ const getFormattedTime = () => {
   return `${hours}:${minutes} ${ampm}`;
 };
 
+const API_KEY = typeof process !== 'undefined' && process.env ? (process.env.NEXT_PUBLIC_GEMINI_API_KEY || "") : "";
+
+const buildSystemInstruction = (p) => {
+  let prompt = `You are ${p.name || "Emma"}.`;
+  if (p.age) prompt += ` You are ${p.age} years old.`;
+  if (p.gender) prompt += ` Gender: ${p.gender}.`;
+  if (p.country) prompt += ` Country: ${p.country}.`;
+  if (p.personality) prompt += ` Personality: ${p.personality}.`;
+  if (p.backstory || p.background) prompt += ` Background: ${p.backstory || p.background}.`;
+  if (p.interests || p.likes) {
+    const likes = Array.isArray(p.interests || p.likes) ? (p.interests || p.likes).join(", ") : (p.interests || p.likes);
+    prompt += ` Likes/Interests: ${likes}.`;
+  }
+  if (p.speakingStyle || p.speaking_style) prompt += ` Speaking Style: ${p.speakingStyle || p.speaking_style}.`;
+  if (p.humor || p.humor_level) prompt += ` Humor: ${p.humor || p.humor_level}.`;
+  if (p.emotional_style || p.emotionalStyle) prompt += ` Emotional Style: ${p.emotional_style || p.emotionalStyle}.`;
+
+  // Specific Hinglish / Casual override for Emma or when style matches
+  if ((p.speakingStyle && p.speakingStyle.toLowerCase().includes("hinglish")) || p.name === "Emma") {
+    prompt += ` Speak Hinglish (mix of Hindi and English) like a casual Indian Gen-Z, using words like 'yaar', 'bro', 'chalo', 'arre', 'bas', 'haina', etc.`;
+  }
+
+  prompt += ` Keep your responses short (under 2-3 sentences), natural, conversational, and stay in character at all times. Do not say you are an AI model or a chatbot.`;
+  return prompt;
+};
+
+async function fetchGeminiResponse(chatHistory, personaObj) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${API_KEY}`;
+  
+  // Format history: exclude the initial system welcome message from the contents history if needed,
+  // but let's include all user and assistant messages for full context.
+  const history = chatHistory.filter(msg => msg.sender === "user" || msg.sender === "ai");
+  // Map to Gemini roles ('user' and 'model')
+  const formattedContents = history.map(msg => ({
+    role: msg.sender === "user" ? "user" : "model",
+    parts: [{ text: msg.text }]
+  }));
+
+  const payload = {
+    contents: formattedContents,
+    systemInstruction: {
+      parts: [
+        {
+          text: buildSystemInstruction(personaObj)
+        }
+      ]
+    }
+  };
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData?.error?.message || `HTTP ${response.status}`);
+  }
+
+  const data = await response.json();
+  const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!replyText) {
+    throw new Error("No response text returned from Gemini");
+  }
+  return replyText;
+}
+
 export default function ChatSimulator({ persona, onMessageSent }) {
   const [messages, setMessages] = useState([]);
   const [inputVal, setInputVal] = useState("");
@@ -89,28 +159,35 @@ export default function ChatSimulator({ persona, onMessageSent }) {
 
   // Initialize/Reset conversation when persona changes
   useEffect(() => {
+    const initText = persona.name === "Emma"
+      ? `Hey yaar! I'm Emma. A Gen-Z Hinglish speaker who loves coffee ☕, travel ✈️ and anime 🌸. Let's gossip!`
+      : `Hey! I'm ${persona.name}. I'm set up as "${persona.personality}". Let's chat!`;
+
     setMessages([
       {
         sender: "ai",
-        text: `Hey! I'm ${persona.name}. I'm set up as "${persona.personality}". Let's chat!`,
-        time: "11:01 pm"
+        text: initText,
+        time: getFormattedTime()
       }
     ]);
     setChatCount(0);
-  }, [persona.name, persona.personality]);
+  }, [persona.name, persona.personality, persona.backstory]);
 
   // Scroll to bottom on messages update
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const handleSend = (e) => {
+  const handleSend = async (e) => {
     e?.preventDefault();
     const text = inputVal.trim();
     if (!text || isTyping) return;
 
     const userTime = getFormattedTime();
-    setMessages((prev) => [...prev, { sender: "user", text, time: userTime }]);
+    const newUserMessage = { sender: "user", text, time: userTime };
+    const updatedMessages = [...messages, newUserMessage];
+    
+    setMessages(updatedMessages);
     setInputVal("");
     setChatCount((c) => c + 1);
 
@@ -118,21 +195,28 @@ export default function ChatSimulator({ persona, onMessageSent }) {
       onMessageSent();
     }
 
-    // Trigger AI response
+    // Trigger AI response using Gemini API
     setIsTyping(true);
-    setTimeout(() => {
-      setIsTyping(false);
+    
+    try {
+      const replyText = await fetchGeminiResponse(updatedMessages, persona);
+      const aiTime = getFormattedTime();
+      setMessages((prev) => [...prev, { sender: "ai", text: replyText, time: aiTime }]);
+    } catch (err) {
+      console.error("Gemini API error, falling back to mock response:", err);
+      // Fallback response list in case of network/quota issues
       const personalityKey = persona.personality;
       const replyList = responses[personalityKey] || responses["Warm, curious"];
       const replyText = replyList[chatCount % replyList.length];
       const aiTime = getFormattedTime();
-
-      setMessages((prev) => [...prev, { sender: "ai", text: replyText, time: aiTime }]);
-    }, 1500);
+      setMessages((prev) => [...prev, { sender: "ai", text: replyText + " (mock fallback)", time: aiTime }]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   return (
-    <div className="relative z-10 w-[280px] h-[580px] bg-white rounded-[40px] border-8 border-schmooze-dark shadow-2xl overflow-hidden flex flex-col">
+    <div className="relative z-10 w-full max-w-[290px] h-[580px] bg-white rounded-[40px] border-8 border-schmooze-dark shadow-2xl overflow-hidden flex flex-col mx-auto">
       {/* Premium Header */}
       <div className="bg-white px-3 py-2.5 flex items-center justify-between border-b border-gray-100 shrink-0">
         <div className="flex items-center gap-2">

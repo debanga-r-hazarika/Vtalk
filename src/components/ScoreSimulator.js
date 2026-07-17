@@ -8,7 +8,7 @@ export default function ScoreSimulator({ depth, setDepth, consistency, setConsis
   const earnings = isUnlocked ? (score - 69) * 0.8 + 10 : 0;
 
   return (
-    <div className="lg:col-span-1 bg-white border border-schmooze-border rounded-4xl p-8 text-center card-shadow flex flex-col items-center">
+    <div className="lg:col-span-1 bg-white border border-schmooze-border rounded-4xl p-6 sm:p-8 text-center card-shadow flex flex-col items-center">
       <h2 className="text-2xl font-bold mb-2">Track confidence &amp; earnings</h2>
       <p className="text-xs text-schmooze-gray mb-6">
         The better your conversations, the higher your score.

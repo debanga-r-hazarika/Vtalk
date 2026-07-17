@@ -120,7 +120,7 @@ export default function PersonaModal({ isOpen, onClose, persona, onSave }) {
             <label className="block text-xs font-bold uppercase tracking-wider text-schmooze-gray mb-1">
               Personality Profile
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {(isExpanded ? personalityTags : personalityTags.slice(0, 5)).map((tagVal) => {
                 const isSelected = personality === tagVal;
                 // Human readable formatting
@@ -172,17 +172,17 @@ export default function PersonaModal({ isOpen, onClose, persona, onSave }) {
           </div>
 
           {/* Buttons */}
-          <div class="flex gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 border border-schmooze-dark py-3 rounded-full text-sm font-bold hover:bg-gray-50 active:scale-95 transition-all cursor-pointer"
+              className="w-full sm:flex-1 border border-schmooze-dark py-3 rounded-full text-sm font-bold hover:bg-gray-50 active:scale-95 transition-all cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 bg-schmooze-dark text-white py-3 rounded-full text-sm font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+              className="w-full sm:flex-1 bg-schmooze-dark text-white py-3 rounded-full text-sm font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer"
             >
               Save &amp; Continue
             </button>

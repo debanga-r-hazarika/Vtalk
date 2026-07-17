@@ -48,11 +48,10 @@ export default function PayoutPage() {
             </div>
           </div>
 
-          {/* Tier Table */}
           <div className="bg-white p-8 md:p-12 rounded-4xl border border-schmooze-border card-shadow">
             <h2 className="text-2xl font-bold mb-6 text-left">Payout Tiers &amp; Estimation</h2>
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
+              <table className="w-full min-w-[550px] text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-gray-100 text-schmooze-gray font-bold">
                     <th className="py-3 pr-4">Confidence Tier</th>

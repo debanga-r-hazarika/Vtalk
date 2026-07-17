@@ -90,10 +90,12 @@ export default function Home() {
                 onClick={() => setIsChatModalOpen(true)}
                 className="bg-transparent border-2 border-schmooze-dark text-schmooze-dark px-8 py-4 rounded-full font-bold flex items-center gap-3 hover:bg-schmooze-dark hover:text-white active:scale-95 transition-all cursor-pointer"
               >
-                <span className="w-6 h-6 border-2 border-current rounded-full flex items-center justify-center font-bold text-sm">
-                  💬
+                <span className="w-6 h-6 bg-schmooze-dark text-white rounded-full flex items-center justify-center shrink-0">
+                  <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 24 24">
+                    <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+                  </svg>
                 </span>
-                Try Emma Demo
+                Try Demo Chat
               </button>
             </div>
           </div>

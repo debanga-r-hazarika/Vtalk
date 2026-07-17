@@ -113,7 +113,7 @@ const buildSystemInstruction = (p) => {
 };
 
 async function fetchGeminiResponse(chatHistory, personaObj) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
   
   // Format history: exclude the initial system welcome message from the contents history if needed,
   // but let's include all user and assistant messages for full context.

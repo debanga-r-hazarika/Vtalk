@@ -80,6 +80,12 @@ const getFormattedTime = () => {
   return `${hours}:${minutes} ${ampm}`;
 };
 
+const getFormattedDate = () => {
+  const date = new Date();
+  const options = { weekday: 'short', month: 'short', day: 'numeric' };
+  return date.toLocaleDateString('en-US', options); // e.g., "Sat, Jun 27"
+};
+
 const API_KEY = typeof process !== 'undefined' && process.env ? (process.env.NEXT_PUBLIC_GEMINI_API_KEY || "") : "";
 
 const buildSystemInstruction = (p) => {
@@ -155,6 +161,7 @@ export default function ChatSimulator({ persona, onMessageSent }) {
   const [inputVal, setInputVal] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [chatCount, setChatCount] = useState(0);
+  const [activeReply, setActiveReply] = useState(null); // Keep state for user replies if they double tap or select, but for now we just clean up seed messages.
   const chatEndRef = useRef(null);
 
   // Initialize/Reset conversation when persona changes
@@ -201,7 +208,17 @@ export default function ChatSimulator({ persona, onMessageSent }) {
     try {
       const replyText = await fetchGeminiResponse(updatedMessages, persona);
       const aiTime = getFormattedTime();
-      setMessages((prev) => [...prev, { sender: "ai", text: replyText, time: aiTime }]);
+      // Occasionally simulate a reply block to user's message for premium demo feel
+      const shouldReply = Math.random() > 0.5;
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "ai",
+          text: replyText,
+          time: aiTime,
+          replyTo: shouldReply ? { sender: "user", text: text } : undefined
+        }
+      ]);
     } catch (err) {
       console.error("Gemini API error, falling back to mock response:", err);
       // Fallback response list in case of network/quota issues
@@ -209,25 +226,35 @@ export default function ChatSimulator({ persona, onMessageSent }) {
       const replyList = responses[personalityKey] || responses["Warm, curious"];
       const replyText = replyList[chatCount % replyList.length];
       const aiTime = getFormattedTime();
-      setMessages((prev) => [...prev, { sender: "ai", text: replyText + " (mock fallback)", time: aiTime }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "ai",
+          text: replyText,
+          time: aiTime,
+          replyTo: Math.random() > 0.5 ? { sender: "user", text: text } : undefined
+        }
+      ]);
     } finally {
       setIsTyping(false);
     }
   };
 
   return (
-    <div className="relative z-10 w-full max-w-[290px] h-[580px] bg-white rounded-[40px] border-8 border-schmooze-dark shadow-2xl overflow-hidden flex flex-col mx-auto">
+    <div className="relative z-10 w-full max-w-[290px] h-[580px] bg-white rounded-[40px] border-8 border-schmooze-dark shadow-2xl overflow-hidden flex flex-col mx-auto font-sans">
       {/* Premium Header */}
-      <div className="bg-white px-3 py-2.5 flex items-center justify-between border-b border-gray-100 shrink-0">
+      <div className="bg-[#E2EDF9] px-3.5 py-2.5 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           {/* Back Arrow */}
           <button
             type="button"
-            className="text-schmooze-dark hover:text-gray-600 font-bold text-sm cursor-pointer mr-1 focus:outline-none"
+            className="hover:opacity-70 cursor-pointer focus:outline-none flex items-center justify-center text-[#0e5f76]"
           >
-            ←
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
           </button>
-          <div className="w-8 h-8 rounded-full bg-schmooze-lime overflow-hidden flex items-center justify-center border border-gray-100">
+          <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-gray-100 shadow-sm shrink-0">
             <img
               id="phone-avatar"
               alt="Avatar"
@@ -235,18 +262,28 @@ export default function ChatSimulator({ persona, onMessageSent }) {
               className="w-full h-full object-cover"
             />
           </div>
-          <div className="leading-tight text-left flex items-center h-full py-1">
-            <p className="text-xs font-extrabold text-schmooze-dark" id="phone-persona-name">
-              {persona.name}
+          <div className="leading-none text-left flex flex-col justify-center h-full py-0.5 ml-0.5">
+            <p
+              className="text-[17px] font-black font-sans leading-none tracking-wide"
+              id="phone-persona-name"
+              style={{
+                color: "white",
+                WebkitTextStroke: "1.2px #000000",
+                textStroke: "1.2px #000000"
+              }}
+            >
+              {persona.name ? persona.name.charAt(0).toUpperCase() : ""}
             </p>
           </div>
         </div>
         {/* Menu Dot Icon */}
         <button
           type="button"
-          className="text-schmooze-gray hover:text-black font-extrabold text-sm px-1 cursor-pointer focus:outline-none"
+          className="text-[#0e5f76] hover:opacity-70 cursor-pointer focus:outline-none flex items-center justify-center p-1"
         >
-          ⋮
+          <svg className="w-4.5 h-4.5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+          </svg>
         </button>
       </div>
 
@@ -255,39 +292,83 @@ export default function ChatSimulator({ persona, onMessageSent }) {
         className="flex-1 p-3 space-y-3 overflow-y-auto chat-messages-container text-left"
         id="chat-box"
         style={{
-          backgroundColor: "#d6e6ed",
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='%23a2b7c2' fill-opacity='0.16'%3E%3Cpath d='M15 15c0-2.8 2.2-5 5-5h10c2.8 0 5 2.2 5 5v5c0 2.8-2.2 5-5 5H20c-2.8 0-5-2.2-5-5v-5zm35 45c0-2.8 2.2-5 5-5h10c2.8 0 5 2.2 5 5v5c0 2.8-2.2 5-5 5H55c-2.8 0-5-2.2-5-5v-5zm45-30c0-2.8 2.2-5 5-5h10c2.8 0 5 2.2 5 5v5c0 2.8-2.2 5-5 5h-10c-2.8 0-5-2.2-5-5v-5z'/%3E%3Cpath d='M100 85c0-1.7 1.3-3 3-3h6c1.7 0 3 1.3 3 3v6c0 1.7-1.3 3-3 3h-6c-1.7 0-3-1.3-3-3v-6zm-75 10c-1.7 0-3-1.3-3-3v-6c0-1.7 1.3-3 3-3h6c1.7 0 3 1.3 3 3v6c0 1.7-1.3 3-3 3h-6z'/%3E%3Cpath d='M85 10c2 0 3.5 1.5 3.5 3.5S87 17 85 17s-3.5-1.5-3.5-3.5S83 10 85 10zm-65 45c2 0 3.5 1.5 3.5 3.5S18 62 16 62s-3.5-1.5-3.5-3.5S14 55 16 55zm40-40c2 0 3.5 1.5 3.5 3.5S58 22 56 22s-3.5-1.5-3.5-3.5S54 15 56 15z'/%3E%3C/g%3E%3C/svg%3E")`
+          backgroundColor: "#E2EDF9",
+          backgroundImage: "url('/Message%20BG.webp')",
+          backgroundRepeat: "repeat",
+          backgroundSize: "240px"
         }}
       >
         {/* Centered Date Separator */}
-        <div className="text-center my-2">
-          <span className="bg-white/60 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-[7.5px] font-bold text-schmooze-gray shadow-sm uppercase tracking-wider">
-            Today
+        <div className="text-center my-2.5">
+          <span className="bg-black/[0.08] px-3 py-1 rounded-full text-[8.5px] font-semibold text-[#4a5e75] select-none">
+            {getFormattedDate()}
           </span>
         </div>
 
         {messages.map((msg, index) => (
           <div
             key={index}
-            className={`p-2 rounded-2xl text-tight max-w-[85%] relative shadow-sm message-bubble flex flex-col justify-between ${
+            className={`p-2.5 px-3 rounded-2xl text-tight max-w-[85%] relative shadow-sm message-bubble flex flex-col justify-between ${
               msg.sender === "user"
-                ? "bg-white rounded-tr-none ml-auto text-schmooze-dark"
-                : "bg-[#E2F3B7] rounded-tl-none text-schmooze-dark"
+                ? "bg-white rounded-tr-none ml-auto text-schmooze-dark mr-2"
+                : "bg-[#E2F3B7] rounded-tl-none text-schmooze-dark ml-2"
             }`}
           >
+            {/* WhatsApp-style Speech Bubble Tail */}
+            {msg.sender === "user" ? (
+              <div className="absolute top-0 right-[-6px] w-[7px] h-[13px] text-white fill-current">
+                <svg viewBox="0 0 8 13" width="8" height="13">
+                  <path d="M6.467 3.568L0 12.193V0h8c-.004.148-.016.293-.04.437-.112.673-.49 1.95-1.493 3.131z" />
+                </svg>
+              </div>
+            ) : (
+              <div className="absolute top-0 left-[-6px] w-[7px] h-[13px] text-[#E2F3B7] fill-current">
+                <svg viewBox="0 0 8 13" width="8" height="13">
+                  <path d="M1.533 3.568L8 12.193V0H0c.004.148.016.293.04.437.112.673.49 1.95 1.493 3.131z" />
+                </svg>
+              </div>
+            )}
+
+            {/* Reply Block (if replying to a message) */}
+            {msg.replyTo && (
+              <div
+                className={`rounded-lg p-2 px-2.5 mb-1.5 flex flex-col gap-0.5 text-left ${
+                  msg.sender === "user"
+                    ? "bg-[#f0f4f8]"
+                    : "bg-[#d0e99e]"
+                }`}
+              >
+                <span className="text-[8.5px] font-bold text-[#0e5f76]">
+                  {msg.replyTo.sender === "user" ? "You" : (persona.name || "Luna")}
+                </span>
+                <p
+                  className={`text-[9px] leading-tight line-clamp-2 ${
+                    msg.sender === "user" ? "text-gray-500" : "text-[#4c5c3c]"
+                  }`}
+                >
+                  {msg.replyTo.text}
+                </p>
+              </div>
+            )}
+
             {/* Message Text with padding for absolute time layout */}
-            <p className="pr-6 leading-normal text-[10px] break-words whitespace-pre-wrap">
+            <p className="pr-6 leading-normal text-[10.5px] break-words whitespace-pre-wrap font-medium">
               {msg.text}
             </p>
             {/* Embedded Timestamp */}
-            <span className="absolute bottom-0.5 right-1.5 text-[6.5px] text-gray-400 select-none">
-              {msg.time || "11:01 pm"}
+            <span className="absolute bottom-1 right-2 text-[6.5px] text-gray-400 select-none font-bold">
+              {msg.time}
             </span>
           </div>
         ))}
 
         {isTyping && (
-          <div className="bg-[#E2F3B7] p-2 rounded-2xl rounded-tl-none max-w-[25%] flex items-center justify-center gap-1 message-bubble shadow-sm">
+          <div className="bg-[#E2F3B7] p-2 rounded-2xl rounded-tl-none max-w-[25%] flex items-center justify-center gap-1 message-bubble shadow-sm ml-2 relative">
+            <div className="absolute top-0 left-[-6px] w-[7px] h-[13px] text-[#E2F3B7] fill-current">
+              <svg viewBox="0 0 8 13" width="8" height="13">
+                <path d="M1.533 3.568L8 12.193V0H0c.004.148.016.293.04.437.112.673.49 1.95 1.493 3.131z" />
+              </svg>
+            </div>
             <span className="w-1 h-1 bg-schmooze-gray rounded-full dot"></span>
             <span className="w-1 h-1 bg-schmooze-gray rounded-full dot"></span>
             <span className="w-1 h-1 bg-schmooze-gray rounded-full dot"></span>
@@ -299,58 +380,35 @@ export default function ChatSimulator({ persona, onMessageSent }) {
       {/* Input Form conforming to the designs */}
       <form
         onSubmit={handleSend}
-        className="p-2 border-t border-gray-100 bg-white flex items-center gap-2 shrink-0"
+        className="px-3.5 py-3 pb-4.5 bg-[#E2EDF9] flex items-center shrink-0"
       >
-        <div className="flex-1 bg-gray-50 border border-gray-150 rounded-full h-8 px-3 flex items-center justify-between gap-1">
+        <div className="flex-1 bg-white border border-[#0e5f76] rounded-full h-10 px-4 flex items-center justify-between gap-2 shadow-sm">
           <input
             type="text"
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 bg-transparent text-[10px] text-schmooze-dark focus:outline-none border-none placeholder-gray-400"
+            className="flex-1 bg-transparent text-[11px] text-schmooze-dark focus:outline-none border-none placeholder-gray-400 font-sans"
           />
-          <div className="flex items-center gap-1.5 text-gray-400 shrink-0">
+          <div className="flex items-center gap-2.5 shrink-0">
             {/* Gallery Icon */}
             <button
               type="button"
-              className="hover:text-schmooze-dark transition-colors cursor-pointer focus:outline-none"
+              className="hover:opacity-80 transition-opacity cursor-pointer focus:outline-none flex items-center justify-center p-0.5"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                ></path>
+              <svg className="w-[18px] h-[18px] text-[#0e5f76]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
               </svg>
             </button>
             {/* GIF Text Badge */}
             <button
               type="button"
-              className="text-[7.5px] font-bold border border-current px-0.8 py-0.1 rounded hover:text-schmooze-dark transition-colors cursor-pointer focus:outline-none"
+              className="text-[6.5px] font-black text-[#0e5f76] border border-[#0e5f76] px-1 py-0.5 rounded leading-none flex items-center justify-center tracking-wide font-sans cursor-pointer hover:opacity-80 transition-opacity focus:outline-none"
             >
               GIF
             </button>
           </div>
         </div>
-        <button
-          type="submit"
-          className="w-8 h-8 bg-schmooze-dark text-white rounded-full flex items-center justify-center hover:opacity-90 active:scale-95 transition-all cursor-pointer shrink-0 focus:outline-none"
-        >
-          <svg
-            className="w-3.5 h-3.5 transform rotate-90"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2.5"
-              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-            ></path>
-          </svg>
-        </button>
       </form>
     </div>
   );

@@ -88,7 +88,7 @@ export default function Home() {
               </button>
               <button
                 onClick={() => setIsChatModalOpen(true)}
-                className="bg-transparent border-2 border-schmooze-dark text-schmooze-dark px-8 py-4 rounded-full font-bold flex items-center gap-3 hover:bg-schmooze-dark hover:text-white active:scale-95 transition-all cursor-pointer"
+                className="bg-transparent border-2 border-black text-schmooze-dark px-8 py-4 rounded-full font-bold flex items-center gap-3 hover:bg-schmooze-dark hover:text-white active:scale-95 transition-all cursor-pointer"
               >
                 <span className="w-6 h-6 bg-schmooze-dark text-white rounded-full flex items-center justify-center shrink-0">
                   <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 24 24">
@@ -457,22 +457,25 @@ export default function Home() {
       {/* Demo Chat Modal */}
       {isChatModalOpen && (
         <div
-          className="modal-overlay active flex items-center justify-center p-4"
+          className="modal-overlay active flex items-stretch md:items-center justify-center p-0 md:p-4 fixed inset-0 z-50 bg-black/60 backdrop-blur-md"
           onClick={(e) => {
             if (e.target.classList.contains("modal-overlay")) setIsChatModalOpen(false);
           }}
         >
-          <div className="bg-white rounded-[32px] max-w-4xl w-full p-5 md:p-8 shadow-2xl relative flex flex-col md:flex-row gap-6 md:gap-8 items-stretch max-h-[90vh] overflow-y-auto card-shadow border border-schmooze-border">
+          <div className="bg-white w-full h-full md:h-[620px] max-h-full md:max-h-[90vh] md:max-w-4xl rounded-none md:rounded-[32px] p-4 md:p-8 shadow-2xl relative flex flex-col md:flex-row gap-4 md:gap-8 items-stretch overflow-hidden card-shadow border-0 md:border border-schmooze-border">
             {/* Main Modal Close Button */}
             <button
               onClick={() => setIsChatModalOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-schmooze-dark text-3xl font-bold focus:outline-none cursor-pointer z-50 p-2 leading-none"
+              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center font-bold focus:outline-none cursor-pointer z-50 shadow-sm transition-all active:scale-95"
+              title="Close"
             >
-              &times;
+              <svg className="w-4 h-4 stroke-current" fill="none" viewBox="0 0 24 24" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
 
             {/* Mobile Tab Switcher */}
-            <div className="flex md:hidden bg-gray-100 p-1 rounded-xl mt-4 mb-2 shrink-0 w-full">
+            <div className="flex md:hidden bg-gray-100 p-1 rounded-xl mt-12 mb-2 shrink-0 w-full z-30">
               <button
                 type="button"
                 onClick={() => setActiveModalTab("chat")}
@@ -494,10 +497,10 @@ export default function Home() {
             </div>
 
             {/* Left side: Persona Profile Details */}
-            <div className={`flex-1 flex flex-col justify-between border-b md:border-b-0 md:border-r border-gray-200 pb-6 md:pb-0 md:pr-8 text-left ${activeModalTab === "profile" ? "flex" : "hidden md:flex"}`}>
+            <div className={`flex-1 flex flex-col justify-between border-b md:border-b-0 md:border-r border-gray-200 pb-4 md:pb-0 md:pr-8 text-left ${activeModalTab === "profile" ? "flex" : "hidden md:flex"} overflow-y-auto chat-messages-container`}>
               <div>
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 rounded-full bg-schmooze-lime overflow-hidden flex items-center justify-center border-2 border-schmooze-dark shadow-sm">
+                  <div className="w-16 h-16 rounded-full bg-schmooze-lime overflow-hidden flex items-center justify-center border-2 border-black shadow-sm">
                     <img
                       src={EMMA_PERSONA.avatar}
                       className="w-full h-full object-cover"
@@ -519,7 +522,7 @@ export default function Home() {
                       {score >= 70 ? "🔓 Payout unlocked!" : "🔒 Unlocks at 70%"}
                     </p>
                   </div>
-                  <div className="w-12 h-12 rounded-full border-4 border-schmooze-dark flex items-center justify-center font-bold text-xs bg-white shadow-sm">
+                  <div className="w-12 h-12 rounded-full border-4 border-black flex items-center justify-center font-bold text-xs bg-white shadow-sm">
                     {score}%
                   </div>
                 </div>
@@ -559,8 +562,8 @@ export default function Home() {
             </div>
 
             {/* Right side: Interactive Chat Simulator */}
-            <div className={`flex-1 flex justify-center items-center relative pt-4 md:pt-0 pl-0 md:pl-4 ${activeModalTab === "chat" ? "flex" : "hidden md:flex"}`}>
-              <ChatSimulator persona={EMMA_PERSONA} onMessageSent={handleMessageSent} />
+            <div className={`flex-1 flex justify-center items-center relative pt-2 md:pt-0 pl-0 md:pl-4 h-full w-full overflow-hidden ${activeModalTab === "chat" ? "flex" : "hidden md:flex"}`}>
+              <ChatSimulator persona={EMMA_PERSONA} onMessageSent={handleMessageSent} isModalView={true} onClose={() => setIsChatModalOpen(false)} />
             </div>
           </div>
         </div>

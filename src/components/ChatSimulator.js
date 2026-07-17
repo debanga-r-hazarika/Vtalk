@@ -156,12 +156,13 @@ async function fetchGeminiResponse(chatHistory, personaObj) {
   return replyText;
 }
 
-export default function ChatSimulator({ persona, onMessageSent }) {
+export default function ChatSimulator({ persona, onMessageSent, isModalView = false, onClose }) {
   const [messages, setMessages] = useState([]);
   const [inputVal, setInputVal] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [chatCount, setChatCount] = useState(0);
   const [activeReply, setActiveReply] = useState(null); // Keep state for user replies if they double tap or select, but for now we just clean up seed messages.
+  const [error, setError] = useState(null);
   const chatEndRef = useRef(null);
 
   // Initialize/Reset conversation when persona changes
@@ -221,6 +222,28 @@ export default function ChatSimulator({ persona, onMessageSent }) {
       ]);
     } catch (err) {
       console.error("Gemini API error, falling back to mock response:", err);
+      
+      const errMsg = (err.message || "").toLowerCase();
+      if (
+        errMsg.includes("429") ||
+        errMsg.includes("quota") ||
+        errMsg.includes("limit") ||
+        errMsg.includes("503") ||
+        errMsg.includes("demand") ||
+        errMsg.includes("overload") ||
+        errMsg.includes("resource") ||
+        errMsg.includes("unavailable")
+      ) {
+        setError("Please wait, facing high demand. Using offline mode...");
+      } else {
+        setError("API connection lost. Using offline mode...");
+      }
+
+      // Auto-dismiss the error banner after 5 seconds
+      setTimeout(() => {
+        setError(null);
+      }, 5000);
+
       // Fallback response list in case of network/quota issues
       const personalityKey = persona.personality;
       const replyList = responses[personalityKey] || responses["Warm, curious"];
@@ -241,13 +264,20 @@ export default function ChatSimulator({ persona, onMessageSent }) {
   };
 
   return (
-    <div className="relative z-10 w-full max-w-[290px] h-[580px] bg-white rounded-[40px] border-8 border-schmooze-dark shadow-2xl overflow-hidden flex flex-col mx-auto font-sans">
+    <div
+      className={
+        isModalView
+          ? "relative z-10 w-full h-full md:max-w-[290px] md:h-[580px] bg-white rounded-[24px] md:rounded-[40px] border border-gray-200 md:border-8 md:border-black md:shadow-2xl overflow-hidden flex flex-col mx-auto font-sans"
+          : "relative z-10 w-full max-w-[290px] h-[580px] bg-white rounded-[40px] border-8 border-black shadow-2xl overflow-hidden flex flex-col mx-auto font-sans"
+      }
+    >
       {/* Premium Header */}
       <div className="bg-[#E2EDF9] px-3.5 py-2.5 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           {/* Back Arrow */}
           <button
             type="button"
+            onClick={onClose}
             className="hover:opacity-70 cursor-pointer focus:outline-none flex items-center justify-center text-[#0e5f76]"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -286,6 +316,25 @@ export default function ChatSimulator({ persona, onMessageSent }) {
           </svg>
         </button>
       </div>
+
+      {/* High Demand Warning Banner */}
+      {error && (
+        <div className="bg-[#FFF8E6] border-b border-[#FFE0A3] px-3 py-1.5 flex items-center justify-between text-[9px] text-[#805B00] shrink-0 font-semibold select-none shadow-inner transition-all duration-300">
+          <div className="flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5 text-[#D49E00] shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span>{error}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setError(null)}
+            className="text-[#B37F00] hover:text-[#805B00] font-black text-sm cursor-pointer focus:outline-none leading-none px-1"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Messages Area with tileable doodle background */}
       <div

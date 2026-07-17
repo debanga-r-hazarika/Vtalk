@@ -4,34 +4,34 @@ import React, { useState, useEffect, useRef } from "react";
 
 const responses = {
   "Warm, curious": [
-    "I love exploring new ideas! What inspired you today?",
-    "That sounds fascinating. Could you tell me more about how that made you feel?",
-    "Oh really? Tell me more! I'm all ears.",
-    "That's wonderful! Having meaningful interactions is my favorite part of the day.",
-    "Interesting point! What other things do you like about that?",
-    "I'm so glad we are chatting. You have such a unique perspective!"
+    "Hey! I'm Luna. What's something fun you did today?",
+    "That sounds so interesting! Tell me, what got you started with that?",
+    "Oh, I'd love to know more. What was your favorite part of that experience?",
+    "That's lovely. It really makes me think about how we spend our time.",
+    "Wow! Thanks for sharing that with me. What else is on your mind?",
+    "Fascinating. I'm always curious about different perspectives on this."
   ],
   "Witty, sarcastic": [
-    "Oh, standard human answer. I'm shocked.",
-    "Well, that's one way to spend your finite lifetime. Fascinating.",
-    "I'm pretending to write this down in my memory banks right now.",
-    "Let's be honest, you could have described that with slightly more enthusiasm.",
-    "Wow, tell me more. No, seriously, I have absolutely nothing better to do.",
-    "Is that your final answer, or can I interest you in a more creative response?"
+    "Oh, wonderful. Another human talking to me. How thrilling. 🙄",
+    "Let me guess: you're going to ask me about the meaning of life next?",
+    "Fascinating story. Truly. I'll print it out and frame it later.",
+    "Right, because my opinion is obviously the most important thing here.",
+    "Sure, let's pretend that makes perfect sense. What else?",
+    "Hold on, let me write that down in my book of things I will definitely remember."
   ],
   "Professional, calm": [
-    "Understood. That is a solid approach to the situation.",
-    "Thank you for sharing that. How would you evaluate the outcome?",
-    "I appreciate your input. Let's analyze how that applies to our research goals.",
-    "Indeed. Consistency and clarity are key in these interactions.",
-    "Let's proceed. What would you outline as the next critical step?",
-    "Thank you for this feedback. It helps refine our conversational standards."
+    "Understood. Let's analyze this logically and step-by-step.",
+    "That is a valid point. Let's review the implications.",
+    "I appreciate your input. We should proceed with the current plan.",
+    "Let's focus on the primary objectives for today's session.",
+    "Confirmed. I've recorded those parameters for our records.",
+    "Excellent. Let's maintain this structure moving forward."
   ],
   "Creative, mystical": [
-    "Every word is a brushstroke on the canvas of our shared reality. What color is your mood today?",
-    "Fascinating... I feel a strange connection to that memory. It feels like stardust.",
-    "Tell me of your dreams. What echoes in the quiet corners of your mind?",
-    "Ah, a beautiful pattern! The universe speaks in such unexpected whispers.",
+    "Ah, the stars must have aligned for us to talk about this today. ✨",
+    "I sense a deep creative spark in what you just said. Tell me more.",
+    "Imagine if we could paint this conversation in colors. What would it look like?",
+    "Every word we speak leaves a trace in the digital universe.",
     "Let your thoughts wander like a river. Where does the current take you?",
     "In the geometry of conversations, this moment is a perfect star."
   ],
@@ -69,6 +69,17 @@ const responses = {
   ]
 };
 
+const getFormattedTime = () => {
+  const date = new Date();
+  let hours = date.getHours();
+  let minutes = date.getMinutes();
+  const ampm = hours >= 12 ? "pm" : "am";
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  minutes = minutes < 10 ? "0" + minutes : minutes;
+  return `${hours}:${minutes} ${ampm}`;
+};
+
 export default function ChatSimulator({ persona, onMessageSent }) {
   const [messages, setMessages] = useState([]);
   const [inputVal, setInputVal] = useState("");
@@ -82,7 +93,8 @@ export default function ChatSimulator({ persona, onMessageSent }) {
       {
         sender: "ai",
         text: `Hey! I'm ${persona.name}. I'm set up as "${persona.personality}". Let's chat!`,
-      },
+        time: "11:01 pm"
+      }
     ]);
     setChatCount(0);
   }, [persona.name, persona.personality]);
@@ -97,12 +109,11 @@ export default function ChatSimulator({ persona, onMessageSent }) {
     const text = inputVal.trim();
     if (!text || isTyping) return;
 
-    // User message
-    setMessages((prev) => [...prev, { sender: "user", text }]);
+    const userTime = getFormattedTime();
+    setMessages((prev) => [...prev, { sender: "user", text, time: userTime }]);
     setInputVal("");
     setChatCount((c) => c + 1);
 
-    // Call state update (for score boosting)
     if (onMessageSent) {
       onMessageSent();
     }
@@ -114,75 +125,136 @@ export default function ChatSimulator({ persona, onMessageSent }) {
       const personalityKey = persona.personality;
       const replyList = responses[personalityKey] || responses["Warm, curious"];
       const replyText = replyList[chatCount % replyList.length];
-      
-      setMessages((prev) => [...prev, { sender: "ai", text: replyText }]);
+      const aiTime = getFormattedTime();
+
+      setMessages((prev) => [...prev, { sender: "ai", text: replyText, time: aiTime }]);
     }, 1500);
   };
 
   return (
     <div className="relative z-10 w-[280px] h-[580px] bg-white rounded-[40px] border-8 border-schmooze-dark shadow-2xl overflow-hidden flex flex-col">
-      {/* Header */}
-      <div className="bg-white px-4 py-3 flex items-center gap-3 border-b border-gray-100">
-        <div className="w-8 h-8 rounded-full bg-schmooze-lime overflow-hidden flex items-center justify-center">
-          <img
-            id="phone-avatar"
-            alt="Avatar"
-            src={persona.avatar}
-            className="w-full h-full object-cover"
-          />
+      {/* Premium Header */}
+      <div className="bg-white px-3 py-2.5 flex items-center justify-between border-b border-gray-100 shrink-0">
+        <div className="flex items-center gap-2">
+          {/* Back Arrow */}
+          <button
+            type="button"
+            className="text-schmooze-dark hover:text-gray-600 font-bold text-sm cursor-pointer mr-1 focus:outline-none"
+          >
+            ←
+          </button>
+          <div className="w-8 h-8 rounded-full bg-schmooze-lime overflow-hidden flex items-center justify-center border border-gray-100">
+            <img
+              id="phone-avatar"
+              alt="Avatar"
+              src={persona.avatar}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="leading-tight text-left">
+            <p className="text-[10px] font-extrabold text-schmooze-dark" id="phone-persona-name">
+              {persona.name}
+            </p>
+            <p className="text-[8px] text-green-500 font-bold" id="phone-persona-status">
+              online
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="text-[10px] font-bold" id="phone-persona-name">
-            {persona.name}
-          </p>
-          <p className="text-[8px] text-green-500 font-bold" id="phone-persona-status">
-            • Online
-          </p>
-        </div>
+        {/* Menu Dot Icon */}
+        <button
+          type="button"
+          className="text-schmooze-gray hover:text-black font-extrabold text-sm px-1 cursor-pointer focus:outline-none"
+        >
+          ⋮
+        </button>
       </div>
 
-      {/* Messages */}
+      {/* Messages Area with tileable doodle background */}
       <div
-        className="flex-1 p-4 bg-gray-50 space-y-4 text-[10px] overflow-y-auto chat-messages-container"
+        className="flex-1 p-3 space-y-3 overflow-y-auto chat-messages-container text-left"
         id="chat-box"
+        style={{
+          backgroundColor: "#d6e6ed",
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='%23a2b7c2' fill-opacity='0.16'%3E%3Cpath d='M15 15c0-2.8 2.2-5 5-5h10c2.8 0 5 2.2 5 5v5c0 2.8-2.2 5-5 5H20c-2.8 0-5-2.2-5-5v-5zm35 45c0-2.8 2.2-5 5-5h10c2.8 0 5 2.2 5 5v5c0 2.8-2.2 5-5 5H55c-2.8 0-5-2.2-5-5v-5zm45-30c0-2.8 2.2-5 5-5h10c2.8 0 5 2.2 5 5v5c0 2.8-2.2 5-5 5h-10c-2.8 0-5-2.2-5-5v-5z'/%3E%3Cpath d='M100 85c0-1.7 1.3-3 3-3h6c1.7 0 3 1.3 3 3v6c0 1.7-1.3 3-3 3h-6c-1.7 0-3-1.3-3-3v-6zm-75 10c-1.7 0-3-1.3-3-3v-6c0-1.7 1.3-3 3-3h6c1.7 0 3 1.3 3 3v6c0 1.7-1.3 3-3 3h-6z'/%3E%3Cpath d='M85 10c2 0 3.5 1.5 3.5 3.5S87 17 85 17s-3.5-1.5-3.5-3.5S83 10 85 10zm-65 45c2 0 3.5 1.5 3.5 3.5S18 62 16 62s-3.5-1.5-3.5-3.5S14 55 16 55zm40-40c2 0 3.5 1.5 3.5 3.5S58 22 56 22s-3.5-1.5-3.5-3.5S54 15 56 15z'/%3E%3C/g%3E%3C/svg%3E")`
+        }}
       >
+        {/* Centered Date Separator */}
+        <div className="text-center my-2">
+          <span className="bg-white/60 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-[7.5px] font-bold text-schmooze-gray shadow-sm uppercase tracking-wider">
+            Today
+          </span>
+        </div>
+
         {messages.map((msg, index) => (
           <div
             key={index}
-            className={`p-2 rounded-2xl text-tight message-bubble ${
+            className={`p-2 rounded-xl text-tight max-w-[85%] relative shadow-sm message-bubble flex flex-col justify-between ${
               msg.sender === "user"
-                ? "bg-schmooze-lime rounded-tr-none ml-auto max-w-[80%]"
-                : "bg-white rounded-tl-none max-w-[80%] border border-gray-100"
+                ? "bg-white rounded-br-none ml-auto text-schmooze-dark"
+                : "bg-[#E5F7C6] rounded-bl-none text-schmooze-dark"
             }`}
           >
-            {msg.text}
+            {/* Message Text with padding for absolute time layout */}
+            <p className="pr-6 leading-normal text-[10px] break-words whitespace-pre-wrap">
+              {msg.text}
+            </p>
+            {/* Embedded Timestamp */}
+            <span className="absolute bottom-0.5 right-1.5 text-[6.5px] text-gray-400 select-none">
+              {msg.time || "11:01 pm"}
+            </span>
           </div>
         ))}
+
         {isTyping && (
-          <div className="bg-white p-2 rounded-2xl rounded-tl-none max-w-[30%] border border-gray-100 flex items-center justify-center gap-1.5 message-bubble">
-            <span className="w-1.5 h-1.5 bg-schmooze-gray rounded-full dot"></span>
-            <span className="w-1.5 h-1.5 bg-schmooze-gray rounded-full dot"></span>
-            <span className="w-1.5 h-1.5 bg-schmooze-gray rounded-full dot"></span>
+          <div className="bg-[#E5F7C6] p-2 rounded-xl rounded-bl-none max-w-[25%] flex items-center justify-center gap-1 message-bubble shadow-sm">
+            <span className="w-1 h-1 bg-schmooze-gray rounded-full dot"></span>
+            <span className="w-1 h-1 bg-schmooze-gray rounded-full dot"></span>
+            <span className="w-1 h-1 bg-schmooze-gray rounded-full dot"></span>
           </div>
         )}
         <div ref={chatEndRef} />
       </div>
 
-      {/* Input Form */}
+      {/* Input Form conforming to the designs */}
       <form
         onSubmit={handleSend}
-        className="p-3 border-t border-gray-100 bg-white flex items-center gap-2"
+        className="p-2 border-t border-gray-100 bg-white flex items-center gap-2 shrink-0"
       >
-        <input
-          type="text"
-          value={inputVal}
-          onChange={(e) => setInputVal(e.target.value)}
-          placeholder={`Say hello to ${persona.name}...`}
-          className="flex-1 bg-gray-100 h-8 px-3 rounded-full text-[10px] focus:outline-none focus:ring-1 focus:ring-schmooze-lime border-none"
-        />
+        <div className="flex-1 bg-gray-50 border border-gray-150 rounded-full h-8 px-3 flex items-center justify-between gap-1">
+          <input
+            type="text"
+            value={inputVal}
+            onChange={(e) => setInputVal(e.target.value)}
+            placeholder="Type a message..."
+            className="flex-1 bg-transparent text-[10px] text-schmooze-dark focus:outline-none border-none placeholder-gray-400"
+          />
+          <div className="flex items-center gap-1.5 text-gray-400 shrink-0">
+            {/* Gallery Icon */}
+            <button
+              type="button"
+              className="hover:text-schmooze-dark transition-colors cursor-pointer focus:outline-none"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                ></path>
+              </svg>
+            </button>
+            {/* GIF Text Badge */}
+            <button
+              type="button"
+              className="text-[7.5px] font-bold border border-current px-0.8 py-0.1 rounded hover:text-schmooze-dark transition-colors cursor-pointer focus:outline-none"
+            >
+              GIF
+            </button>
+          </div>
+        </div>
         <button
           type="submit"
-          className="w-8 h-8 bg-schmooze-dark text-white rounded-full flex items-center justify-center hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+          className="w-8 h-8 bg-schmooze-dark text-white rounded-full flex items-center justify-center hover:opacity-90 active:scale-95 transition-all cursor-pointer shrink-0 focus:outline-none"
         >
           <svg
             className="w-3.5 h-3.5 transform rotate-90"
@@ -191,10 +263,10 @@ export default function ChatSimulator({ persona, onMessageSent }) {
             viewBox="0 0 24 24"
           >
             <path
-              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth="2"
+              strokeWidth="2.5"
+              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
             ></path>
           </svg>
         </button>

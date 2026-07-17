@@ -113,7 +113,7 @@ const buildSystemInstruction = (p) => {
 };
 
 async function fetchGeminiResponse(chatHistory, personaObj) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
   
   // Format history: exclude the initial system welcome message from the contents history if needed,
   // but let's include all user and assistant messages for full context.
@@ -300,7 +300,7 @@ export default function ChatSimulator({ persona, onMessageSent }) {
       >
         {/* Centered Date Separator */}
         <div className="text-center my-2.5">
-          <span className="bg-black/[0.08] px-3 py-1 rounded-full text-[8.5px] font-semibold text-[#4a5e75] select-none">
+          <span className="bg-black/[0.08] px-2.5 py-0.5 rounded-full text-[8px] font-semibold text-[#4a5e75] select-none">
             {getFormattedDate()}
           </span>
         </div>
@@ -352,7 +352,7 @@ export default function ChatSimulator({ persona, onMessageSent }) {
             )}
 
             {/* Message Text with padding for absolute time layout */}
-            <p className="pr-6 leading-normal text-[10.5px] break-words whitespace-pre-wrap font-medium">
+            <p className="pr-6 leading-normal text-[10px] break-words whitespace-pre-wrap font-medium">
               {msg.text}
             </p>
             {/* Embedded Timestamp */}

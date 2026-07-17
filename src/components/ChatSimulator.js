@@ -151,12 +151,9 @@ export default function ChatSimulator({ persona, onMessageSent }) {
               className="w-full h-full object-cover"
             />
           </div>
-          <div className="leading-tight text-left">
-            <p className="text-[10px] font-extrabold text-schmooze-dark" id="phone-persona-name">
+          <div className="leading-tight text-left flex items-center h-full py-1">
+            <p className="text-xs font-extrabold text-schmooze-dark" id="phone-persona-name">
               {persona.name}
-            </p>
-            <p className="text-[8px] text-green-500 font-bold" id="phone-persona-status">
-              online
             </p>
           </div>
         </div>
@@ -188,10 +185,10 @@ export default function ChatSimulator({ persona, onMessageSent }) {
         {messages.map((msg, index) => (
           <div
             key={index}
-            className={`p-2 rounded-xl text-tight max-w-[85%] relative shadow-sm message-bubble flex flex-col justify-between ${
+            className={`p-2 rounded-2xl text-tight max-w-[85%] relative shadow-sm message-bubble flex flex-col justify-between ${
               msg.sender === "user"
-                ? "bg-white rounded-br-none ml-auto text-schmooze-dark"
-                : "bg-[#E5F7C6] rounded-bl-none text-schmooze-dark"
+                ? "bg-white rounded-tr-none ml-auto text-schmooze-dark"
+                : "bg-[#E2F3B7] rounded-tl-none text-schmooze-dark"
             }`}
           >
             {/* Message Text with padding for absolute time layout */}
@@ -206,7 +203,7 @@ export default function ChatSimulator({ persona, onMessageSent }) {
         ))}
 
         {isTyping && (
-          <div className="bg-[#E5F7C6] p-2 rounded-xl rounded-bl-none max-w-[25%] flex items-center justify-center gap-1 message-bubble shadow-sm">
+          <div className="bg-[#E2F3B7] p-2 rounded-2xl rounded-tl-none max-w-[25%] flex items-center justify-center gap-1 message-bubble shadow-sm">
             <span className="w-1 h-1 bg-schmooze-gray rounded-full dot"></span>
             <span className="w-1 h-1 bg-schmooze-gray rounded-full dot"></span>
             <span className="w-1 h-1 bg-schmooze-gray rounded-full dot"></span>
